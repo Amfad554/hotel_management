@@ -1,169 +1,196 @@
-const roomSection = document.getElementById("room-section");
-const eventSection = document.getElementById("event-section");
-const bothSection = document.getElementById("both-section");
-const successMessage = document.getElementById("successMessage");
-
-// Switch between forms
-document.getElementById("roomLink").addEventListener("click", (e) => {
-  e.preventDefault();
-  roomSection.style.display = "block";
-  eventSection.style.display = "none";
-  bothSection.style.display = "none";
-  successMessage.style.display = "none";
-});
-
-document.getElementById("eventLink").addEventListener("click", (e) => {
-  e.preventDefault();
-  roomSection.style.display = "none";
-  eventSection.style.display = "block";
-  bothSection.style.display = "none";
-  successMessage.style.display = "none";
-});
-
-document.getElementById("bothLink").addEventListener("click", (e) => {
-  e.preventDefault();
-  roomSection.style.display = "none";
-  eventSection.style.display = "none";
-  bothSection.style.display = "block";
-  successMessage.style.display = "none";
-});
-
-// Arrays
-let bookings = [];
-let confirmedBookings = [];
-
-// Base class
-class Lodger {
-  constructor(fullname, email, phone, checkin, checkoutDate, guests, roomtype, payment) {
-    this.fullname = fullname;
-    this.email = email;
-    this.phone = phone;
-    this.checkin = checkin;
-    this.checkoutDate = checkoutDate;
-    this.guests = guests;
-    this.roomtype = roomtype;
-    this.payment = payment;
-  }
-
-  saveBooking() {
-    bookings.push(this);
-    console.clear();
-    console.log("Booking saved:", this);
-    console.log("All bookings:", bookings);
-    console.table(bookings);
-    alert("✅ Booking successful! Please proceed to checkout.");
+class Booking {
+  constructor(type, name) {
+    this.type = type;
+    this.name = name;
   }
 }
 
-// Subclass for events
-class EventBooking extends Lodger {
-  constructor(fullname, email, phone, checkin, checkoutDate, guests, roomtype, payment, eventName, eventDate, attendees, eventHall) {
-    super(fullname, email, phone, checkin, checkoutDate, guests, roomtype, payment);
+class RoomBooking extends Booking {
+  constructor(name, checkin, checkout, roomNumber, guests) {
+    super("Room", name);
+    this.checkin = checkin;
+    this.checkout = checkout;
+    this.roomNumber = roomNumber;
+    this.guests = guests;
+  }
+}
+
+class EventBooking extends Booking {
+  constructor(name, eventName, eventDate, attendees, venue) {
+    super("Event", name);
     this.eventName = eventName;
     this.eventDate = eventDate;
     this.attendees = attendees;
-    this.eventHall = eventHall;
-  }
-
-  saveBooking() {
-    bookings.push(this);
-    console.clear();
-    console.log("Event booking saved:", this);
-    console.log("All bookings:", bookings);
-    console.table(bookings);
-    alert("✅ Event booking successful! Please proceed to checkout.");
+    this.venue = venue;
   }
 }
 
-// ROOM FORM
-document.getElementById("room-form").addEventListener("submit", function (e) {
-  e.preventDefault();
+class BothBooking extends Booking {
+  constructor(name, checkin, checkout, roomNumber, guests, eventName, eventDate, attendees, venue) {
+    super("Both", name);
+    this.checkin = checkin;
+    this.checkout = checkout;
+    this.roomNumber = roomNumber;
+    this.guests = guests;
+    this.eventName = eventName;
+    this.eventDate = eventDate;
+    this.attendees = attendees;
+    this.venue = venue;
+  }
+}
 
-  let lodger = new Lodger(
-    this.fullname.value,
-    this.email.value,
-    this.phone.value,
-    this.checkin.value,
-    this.checkout.value,
-    this.guests.value,
-    this.roomtype.value,
-    this.payment.value
-  );
+// =========================
+// Dashboard Logic
+// =========================
+const bookingType = document.getElementById("booking-type");
+const roomFields = document.getElementById("room-fields");
+const eventFields = document.getElementById("event-fields");
+const bothFields = document.getElementById("both-fields");
+const form = document.getElementById("booking-form");
+const successMessage = document.getElementById("successMessage");
 
-  lodger.saveBooking();
-  document.getElementById("room-checkout").style.display = "inline-block";
-  this.reset(); // clear form inputs
-});
+const bookingList = document.getElementById("booking-list");
+const confirmedList = document.getElementById("confirmed-booking-list");
 
-// EVENT FORM (fixed!)
-document.getElementById("rooms-form").addEventListener("submit", function (e) {
-  e.preventDefault();
+const tabBtns = document.querySelectorAll(".tab-btn");
+const tabContents = document.querySelectorAll(".tab-content");
 
-  let eventBooking = new EventBooking(
-    this.fullname.value,
-    this.email.value,
-    this.phone.value,
-    "N/A", // no checkin
-    "N/A", // no checkout
-    "N/A", // no guests
-    "N/A", // no roomtype
-    this.payment ? this.payment.value : "N/A",
-    this.eventName.value,
-    this.eventDate.value,
-    this.attendees.value,
-    this.eventHall.value
-  );
+let activeBookings = [];
+let checkedBookings = [];
 
-  eventBooking.saveBooking();
-  document.getElementById("event-checkout").style.display = "inline-block";
-  this.reset(); // clear form inputs
-});
+// =========================
+// Show/Hide form fields
+// =========================
+function updateFields() {
+  const type = bookingType.value;
+  roomFields.style.display = (type === "Room") ? "block" : "none";
+  eventFields.style.display = (type === "Event") ? "block" : "none";
+  bothFields.style.display = (type === "Both") ? "block" : "none";
+}
+bookingType.addEventListener("change", updateFields);
+updateFields();
 
-// BOTH FORM
-document.getElementById("both-form").addEventListener("submit", function (e) {
-  e.preventDefault();
+// =========================
+// Render Functions
+// =========================
+function renderActive() {
+  bookingList.innerHTML = "";
+  if(activeBookings.length === 0){
+    bookingList.innerHTML = "<p>No active bookings.</p>";
+    return;
+  }
 
-  let bothBooking = new EventBooking(
-    this.fullname.value,
-    this.email.value,
-    this.phone.value,
-    this.checkin.value,
-    this.checkout.value,
-    this.guests.value,
-    this.roomtype.value,
-    this.payment.value,
-    this.eventName.value,
-    this.eventDate.value,
-    this.attendees.value,
-    this.eventHall.value
-  );
+  activeBookings.forEach((b, index) => {
+    const div = document.createElement("div");
+    div.classList.add("booking-item");
 
-  bothBooking.saveBooking();
-  document.getElementById("both-checkout").style.display = "inline-block";
-  this.reset(); // clear form inputs
-});
-
-// ✅ Checkout button pushes booking into confirmedBookings
-function setupCheckout(checkoutBtnId) {
-  const checkoutBtn = document.getElementById(checkoutBtnId);
-  checkoutBtn.addEventListener("click", () => {
-    if (bookings.length > 0) {
-      let lastBooking = bookings[bookings.length - 1];
-      confirmedBookings.push(lastBooking);
-      console.clear();
-      console.log("Confirmed booking:", lastBooking);
-      console.log("All confirmed:", confirmedBookings);
-      console.table(confirmedBookings);
-      alert("✅ Booking moved to confirmed list!");
-
-      window.location.href = "checkout.html";
-      // Clear UI after checkout
-      successMessage.style.display = "none";
-      checkoutBtn.style.display = "none";
+    let content = `<strong>${b.type}:</strong> ${b.name}`;
+    if(b instanceof RoomBooking){
+      content += ` | Check-in: ${b.checkin}, Check-out: ${b.checkout}, Room: ${b.roomNumber}, Guests: ${b.guests}`;
+    } else if(b instanceof EventBooking){
+      content += ` | Event: ${b.eventName}, Date: ${b.eventDate}, Attendees: ${b.attendees}, Venue: ${b.venue}`;
+    } else if(b instanceof BothBooking){
+      content += ` | Room: ${b.roomNumber}, Guests: ${b.guests}, Event: ${b.eventName}, Date: ${b.eventDate}, Attendees: ${b.attendees}, Venue: ${b.venue}`;
     }
+
+    div.innerHTML = content;
+
+    const btn = document.createElement("button");
+    btn.textContent = "Checkout";
+    btn.addEventListener("click", () => {
+      const checked = activeBookings.splice(index,1)[0];
+      checkedBookings.push(checked);
+      renderActive();
+      renderChecked();
+    });
+    div.appendChild(btn);
+    bookingList.appendChild(div);
   });
 }
 
-setupCheckout("room-checkout");
-setupCheckout("event-checkout");
-setupCheckout("both-checkout");
+function renderChecked() {
+  confirmedList.innerHTML = "";
+  if(checkedBookings.length === 0){
+    confirmedList.innerHTML = "<p>No checked-out bookings.</p>";
+    return;
+  }
+
+  checkedBookings.forEach(b => {
+    const div = document.createElement("div");
+    div.classList.add("booking-item");
+
+    let content = `<strong>${b.type}:</strong> ${b.name}`;
+    if(b instanceof RoomBooking){
+      content += ` | Check-in: ${b.checkin}, Check-out: ${b.checkout}, Room: ${b.roomNumber}, Guests: ${b.guests}`;
+    } else if(b instanceof EventBooking){
+      content += ` | Event: ${b.eventName}, Date: ${b.eventDate}, Attendees: ${b.attendees}, Venue: ${b.venue}`;
+    } else if(b instanceof BothBooking){
+      content += ` | Room: ${b.roomNumber}, Guests: ${b.guests}, Event: ${b.eventName}, Date: ${b.eventDate}, Attendees: ${b.attendees}, Venue: ${b.venue}`;
+    }
+
+    div.innerHTML = content;
+    confirmedList.appendChild(div);
+  });
+}
+
+// =========================
+// Handle Form Submission
+// =========================
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const type = bookingType.value;
+  const name = document.getElementById("name").value;
+
+  let booking;
+  if(type === "Room"){
+    booking = new RoomBooking(
+      name,
+      document.getElementById("checkin").value,
+      document.getElementById("checkout").value,
+      document.getElementById("roomNumber").value,
+      document.getElementById("guests").value
+    );
+  } else if(type === "Event"){
+    booking = new EventBooking(
+      name,
+      document.getElementById("eventName").value,
+      document.getElementById("eventDate").value,
+      document.getElementById("attendees").value,
+      document.getElementById("venue").value
+    );
+  } else {
+    booking = new BothBooking(
+      name,
+      document.getElementById("bothCheckin").value,
+      document.getElementById("bothCheckout").value,
+      document.getElementById("bothRoomNumber").value,
+      document.getElementById("bothGuests").value,
+      document.getElementById("bothEventName").value,
+      document.getElementById("bothEventDate").value,
+      document.getElementById("bothAttendees").value,
+      document.getElementById("bothVenue").value
+    );
+  }
+
+  activeBookings.push(booking);
+  renderActive();
+  successMessage.style.display = "block";
+  setTimeout(()=> successMessage.style.display = "none", 2000);
+
+  form.reset();
+  updateFields();
+});
+
+tabBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    tabBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const tab = btn.dataset.tab;
+    tabContents.forEach(tc => tc.classList.remove("active"));
+    document.getElementById(tab).classList.add("active");
+  });
+});
+
+renderActive();
+renderChecked();

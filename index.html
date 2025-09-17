@@ -3,28 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Favour's Hotel</title>
+  <title>LuxeVista Hotel</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <nav>
-    <ul>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="rooms.html">Rooms/Events</a></li>
-      <li><a href="contact.html">Contact</a></li>
-    </ul>
+    <h1>LuxeVista Hotel</h1>
   </nav>
 
-  <header>
-    <div class="hero-overlay">
-      <h1>Favour's Hotel</h1>
-      <p>Experience Color, Comfort & Style</p>
-      <a href="rooms.html">Book Now</a>
+  <main>
+    <!-- Booking Form -->
+    <section>
+      <h2>Make a Booking</h2>
+      <div id="successMessage">✅ Booking successful! Please proceed to checkout.</div>
+
+      <form id="booking-form">
+        <label for="booking-type">Booking Type:</label>
+        <select id="booking-type">
+          <option value="Room">Room</option>
+          <option value="Event">Event</option>
+          <option value="Both">Both</option>
+        </select>
+
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" required>
+
+        <!-- Room Fields -->
+        <div id="room-fields" class="hidden">
+          <label>Check-in:</label>
+          <input type="date" id="checkin">
+          <label>Check-out:</label>
+          <input type="date" id="checkout">
+          <label>Room Number:</label>
+          <input type="text" id="roomNumber">
+          <label>Guests:</label>
+          <input type="number" id="guests" min="1">
+        </div>
+
+        <!-- Event Fields -->
+        <div id="event-fields"  class="hidden">
+          <label>Event Name:</label>
+          <input type="text" id="eventName">
+          <label>Event Date:</label>
+          <input type="date" id="eventDate">
+          <label>Attendees:</label>
+          <input type="number" id="attendees" min="1">
+          <label>Venue:</label>
+          <input type="text" id="venue">
+        </div>
+
+        <!-- Both Fields -->
+        <div id="both-fields"  class="hidden">
+          <h3>Room Details</h3>
+          <label>Check-in:</label>
+          <input type="date" id="bothCheckin">
+          <label>Check-out:</label>
+          <input type="date" id="bothCheckout">
+          <label>Room Number:</label>
+          <input type="text" id="bothRoomNumber">
+          <label>Guests:</label>
+          <input type="number" id="bothGuests" min="1">
+
+          <h3>Event Details</h3>
+          <label>Event Name:</label>
+          <input type="text" id="bothEventName">
+          <label>Event Date:</label>
+          <input type="date" id="bothEventDate">
+          <label>Attendees:</label>
+          <input type="number" id="bothAttendees" min="1">
+          <label>Venue:</label>
+          <input type="text" id="bothVenue">
+        </div>
+
+        <button type="submit">Add Booking</button>
+      </form>
+    </section>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="active">📌 Active Bookings</button>
+      <button class="tab-btn" data-tab="checkedout">✅ Checked-out Bookings</button>
     </div>
-  </header>
+
+    <!-- Active Bookings -->
+    <section id="active" class="tab-content active">
+      <h2>📌 Active Bookings</h2>
+      <div id="booking-list"></div>
+    </section>
+
+    <!-- Checked-out Bookings -->
+    <section id="checkedout" class="tab-content">
+      <h2>✅ Checked-out Bookings</h2>
+      <div id="confirmed-booking-list"></div>
+    </section>
+  </main>
 
   <footer>
-    <p>&copy; 2025 Favour's Hotel | All Rights Reserved</p>
+    &copy; 2025 LuxeVista Hotel | All Rights Reserved
   </footer>
+
+  <script src="index.js"></script>
 </body>
 </html>
